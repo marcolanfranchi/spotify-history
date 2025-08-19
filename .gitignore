@@ -1,0 +1,11 @@
+.env
+
+*.db
+
+spotify.log
+
+.spotify_token
+
+venv/
+
+__pycache__/

@@ -1,0 +1,4 @@
+spotipy==2.25.1
+python-dotenv>=1.0.1
+datetime==5.5
+pathlib==1.0.1
