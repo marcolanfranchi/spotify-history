@@ -30,3 +30,4 @@ CREATE TABLE IF NOT EXISTS plays (
     inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, track_id, played_at)
 );
+

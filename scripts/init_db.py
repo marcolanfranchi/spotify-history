@@ -4,6 +4,7 @@ from pathlib import Path
 
 DB_NAME = os.getenv("SQLITE_DB_NAME", "plays.db")
 DB_PATH = Path(f"db/{DB_NAME}")
+
 # Find the latest schema version in db/sql/
 schema_files = sorted(Path("db/sql").glob("V*__*.sql"), reverse=True)
 if not schema_files:
@@ -21,3 +22,4 @@ else:
         print(SCHEMA_PATH.read_text())
         conn.executescript(SCHEMA_PATH.read_text())
     print("Schema applied! ✅")
+

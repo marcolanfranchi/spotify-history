@@ -26,3 +26,4 @@ def insert_play(user_db_id, track_id, track_name, artist_id, artist_name,
             user_db_id, track_id, track_name, artist_id, artist_name,
             album_id, album_name, played_at, duration_ms, context_uri
         ))
+

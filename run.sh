@@ -9,3 +9,4 @@ bash scripts/fetch_spotify.sh
 bash scripts/send_email.sh
 
 echo "All done! Logs at $(pwd)/spotify.log"
+
