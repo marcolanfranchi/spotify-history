@@ -2,8 +2,8 @@
 
 Archive your Spotify listening history into a lightweight SQLite3 database and receive daily listening summaries by email.  
 
-- Every **10 minutes**, a Python script ([here](spotify-history/src/fetch_spotify.py)) runs via cron to fetch your recent Spotify listening history and upsert it into the SQLite3 database. 
-- Every **day at 11:59 PM**, another Python script ([here](spotify-history/src/send_email.py)) runs via cron to query the database, compute daily overview metrics, and send you an email summary of your listening activity.  
+- Every **10 minutes**, a Python script ([here](src/fetch_spotify.py)) runs via cron to fetch your recent Spotify listening history and upsert it into the SQLite3 database. 
+- Every **day at 11:59 PM**, another Python script ([here](src/send_email.py)) runs via cron to query the database, compute daily overview metrics, and send you an email summary of your listening activity.  
 
 
 ## Example Data
@@ -100,8 +100,8 @@ chmod +x ./run.sh
 ./run.sh
 ```
 This script will:
-- Create the SQLite database (if not already present) at [spotify-history/db](spotify-history/db) with the name <SQLITE_DB_NAME> (from `.env`)
-- Apply the latest schema version from [spotify-history/db/sql](spotify-history/db/sql)
+- Create the SQLite database (if not already present) at [db/](db/) with the name <SQLITE_DB_NAME> (from `.env`)
+- Apply the latest schema version from [db/sql/](db/sql/)
 - Set up the required cron jobs
 - Once the script completes, the service is fully installed and running.
 
