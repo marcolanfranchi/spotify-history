@@ -1,6 +1,6 @@
 #!/bin/bash
 # Schedule: every 10 minutes
-CRON_SCHEDULE="*/10 * * * *"
+CRON_SCHEDULE="*/5 * * * *"
 CRON_LOG="$(pwd)/spotify.log"
 PYTHON_FILE="$(pwd)/src/fetch_spotify.py"
 VENV_PYTHON="$(pwd)/venv/bin/python3"

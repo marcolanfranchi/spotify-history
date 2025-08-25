@@ -1,6 +1,6 @@
 #!/bin/bash
 # Schedule: daily 11pm 
-CRON_SCHEDULE="59 23 * * *"
+CRON_SCHEDULE="01 0 * * *"
 CRON_LOG="$(pwd)/spotify.log"
 PYTHON_FILE="$(pwd)/src/send_email.py"
 VENV_PYTHON="$(pwd)/venv/bin/python3"

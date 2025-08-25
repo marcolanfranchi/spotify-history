@@ -10,7 +10,7 @@ def get_my_profile():
         "display_name": profile.get("display_name")
     }
 
-def get_recently_played(limit=50):
+def get_recently_played(limit=20):
     results = sp.current_user_recently_played(limit=limit)
     tracks = []
     for item in results["items"]:
