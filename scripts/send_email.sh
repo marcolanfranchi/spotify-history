@@ -1,5 +1,5 @@
 #!/bin/bash
-# Schedule: daily 11pm 
+# Schedule: daily 12:01am 
 CRON_SCHEDULE="01 0 * * *"
 CRON_LOG="$(pwd)/spotify.log"
 PYTHON_FILE="$(pwd)/src/send_email.py"

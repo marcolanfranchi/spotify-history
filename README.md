@@ -2,7 +2,7 @@
 
 Archive your Spotify listening history into a lightweight SQLite3 database and receive daily listening summaries by email.  
 
-- Every **5 minutes**, a Python script ([here](src/fetch_spotify.py)) runs via cron to fetch your recent Spotify listening history and upsert it into the SQLite3 database. 
+- Every **10 minutes**, a Python script ([here](src/fetch_spotify.py)) runs via cron to fetch your recent Spotify listening history and upsert it into the SQLite3 database. 
 - Every day at **midnight (12:01 AM)**, another Python script ([here](src/send_email.py)) runs via cron to query the database, compute daily overview metrics, and send you an email summary of your listening activity.  
 
 
@@ -31,7 +31,7 @@ played_at                 track_name      artist_name      album_name
 ### Operating System
 - Supported: **macOS** and **Linux**  
 - The service must run on a host that remains continuously powered and connected (e.g., dedicated server, VM, or Raspberry Pi).  
-  - Example: Raspberry Pi Model B v1.1 (512MB RAM) running Raspberry Pi OS Lite (32-bit).  
+  - For example, I'm running it from a Raspberry Pi Model B v1.1 (512MB RAM) running Raspberry Pi OS Lite (32-bit).  
 
 ### Runtime & Dependencies
 - **Python 3.11**
