@@ -4,6 +4,7 @@ import smtplib
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
+from dateutil import parser
 from collections import Counter
 from tzlocal import get_localzone
 
@@ -43,17 +44,18 @@ def get_yesterdays_plays():
 
     local_tz = get_localzone()
 
+
     plays = [
         {
             "played_at": (
-                datetime.strptime(row["played_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                parser.isoparse(row["played_at"])
                 .replace(tzinfo=timezone.utc)
                 .astimezone(local_tz)
-                .strftime("%b %d, %Y %I:%M %p %Z")  # e.g., "Jun 10, 2024 08:15 PM PDT"
+                .strftime("%b %d, %Y %I:%M %p %Z")
             ),
             "track_name": row["track_name"],
             "album_name": row["album_name"],
-            "artist_names": [row["artist_name"]]  # keep list for compatibility
+            "artist_names": [row["artist_name"]]  # keep as list
         }
         for row in rows
     ]

@@ -4,4 +4,4 @@ datetime==5.5
 pathlib==1.0.1
 python-dotenv==1.1.1
 tzlocal==5.3.1
-
+python_dateutil==2.9.0
