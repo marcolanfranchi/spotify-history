@@ -7,6 +7,7 @@ python3 scripts/init_db.py
 echo "Installing cron jobs..."
 bash scripts/fetch_spotify.sh
 bash scripts/send_email.sh
+bash scripts/push_data.sh
 
 echo "Now, fetching last 50 plays to start..."
 sh -c "./venv/bin/python3 ./src/fetch_spotify.py"
