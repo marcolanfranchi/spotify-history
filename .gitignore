@@ -3,6 +3,7 @@
 *.db
 
 spotify.log
+*.log
 
 .spotify_token
 
