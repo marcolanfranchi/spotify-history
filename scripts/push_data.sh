@@ -1,5 +1,5 @@
 #!/bin/bash
-CRON_SCHEDULE="0 * * * *"
+CRON_SCHEDULE="1,31 * * * *"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPT_PATH="$PROJECT_DIR/src/export_and_push.sh"
 LOG_PATH="$PROJECT_DIR/spotify.log"
