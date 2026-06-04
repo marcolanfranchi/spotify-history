@@ -8,5 +8,5 @@ LOG_PATH="$PROJECT_DIR/spotify.log"
 (crontab -l 2>/dev/null | grep -Fv "$SCRIPT_PATH"; \
  echo "$CRON_SCHEDULE bash $SCRIPT_PATH >> $LOG_PATH 2>&1") | crontab -
 
-echo "Export + push cron job installed: $CRON_SCHEDULE"
+echo "S3 export cron job installed: $CRON_SCHEDULE"
 

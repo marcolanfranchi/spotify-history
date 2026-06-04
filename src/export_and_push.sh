@@ -1,41 +1,40 @@
 #!/bin/bash
-# Get absolute path to the script’s directory
+# Exports plays.csv from SQLite and uploads to S3.
+# If S3_BUCKET is not set, exits after saving data/plays.csv (not tracked by git).
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 DB_PATH="$PROJECT_DIR/db/plays.db"
 CSV_PATH="$PROJECT_DIR/data/plays.csv"
 LOG_PATH="$PROJECT_DIR/spotify.log"
+ENV_PATH="$PROJECT_DIR/.env"
 
-# Ensure all output goes to the single log file
+# Ensure output goes to single log file
 exec >> "$LOG_PATH" 2>&1
 
-# Move into the repo so git works
-cd "$PROJECT_DIR" || { echo "Failed to cd into $PROJECT_DIR"; exit 1; }
-
-# Git info
-GIT_BRANCH="main"
-COMMIT_MSG="Exported plays.csv on $(date '+%Y-%m-%d %H:%M:%S') (automated)"
+# Load .env for cron access
+if [ -f "$ENV_PATH" ]; then
+    set -o allexport
+    source "$ENV_PATH"
+    set +o allexport
+fi
 
 # Export from SQLite to CSV
 sqlite3 -header -csv "$DB_PATH" \
-"SELECT played_at, track_id, track_name, artist_name FROM plays ORDER BY played_at DESC;" \
+"SELECT played_at, track_id, track_name, artist_name FROM plays WHERE user_id = 1 ORDER BY played_at DESC;" \
 > "$CSV_PATH"
 
-# Pull latest changes
-git pull origin "$GIT_BRANCH"
+# Check if S3_BUCKET is set, if not exit
+if [ -z "$S3_BUCKET" ]; then
+    echo "S3_BUCKET not set — skipping S3 export"
+    exit 0
+fi
 
-# Stage file
-git add "$CSV_PATH"
-
-# Commit with bot identity
-GIT_AUTHOR_NAME="pi-bot" \
-GIT_AUTHOR_EMAIL="pi-bot@invalid.invalid" \
-GIT_COMMITTER_NAME="pi-bot" \
-GIT_COMMITTER_EMAIL="pi-bot@invalid.invalid" \
-git commit -m "$COMMIT_MSG" || echo "No changes to commit"
-
-# Push as usual (using your SSH key)
-git push origin "$GIT_BRANCH"
-
-echo "Export and push completed at $(date)"
+# Upload to S3
+S3_KEY="$S3_PREFIX/plays.csv"
+if aws s3 cp "$CSV_PATH" "s3://$S3_BUCKET/$S3_KEY" --region "$AWS_REGION"; then
+    echo "S3 upload succeeded: s3://$S3_BUCKET/$S3_KEY at $(date)"
+else
+    echo "S3 upload failed at $(date)"
+fi
