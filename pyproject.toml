@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotify-history"
+version = "0.2.0"
+description = "Archive Spotify listening history into SQLite and email a daily summary."
+requires-python = ">=3.11"
+dependencies = [
+    "spotipy>=2.25",
+    "python-dotenv>=1.0",
+    "python-dateutil>=2.9",
+    "tzlocal>=5.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "DTZ"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

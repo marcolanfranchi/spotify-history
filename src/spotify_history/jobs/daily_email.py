@@ -1,49 +1,24 @@
-import os
-import sqlite3
 import smtplib
-from dotenv import load_dotenv
-from email.mime.text import MIMEText
-from datetime import datetime, timedelta, timezone
-from dateutil import parser
 from collections import Counter
+from datetime import datetime, timedelta, timezone
+from email.mime.text import MIMEText
+
+from dateutil import parser
 from tzlocal import get_localzone
 
-load_dotenv()
+from spotify_history import config
+from spotify_history.db.repository import get_plays_between
 
-DB_NAME = os.getenv("SQLITE_DB_NAME", "plays.db")
-if os.path.exists(f"db/{DB_NAME}"):
-    DB_PATH = f"db/{DB_NAME}"
-else:
-    DB_PATH = f"spotify-history/db/{DB_NAME}"
+ISO_UTC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
-EMAIL_TO = os.getenv("NOTIFY_EMAIL")
-EMAIL_FROM = os.getenv("EMAIL_FROM")
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASS = os.getenv("SMTP_PASS")
 
 def get_yesterdays_plays():
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=1)
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
 
-    start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    end_str = end.strftime("%Y-%m-%dT%H:%M:%SZ")
-    cur.execute("""
-        SELECT played_at, track_name, album_name, artist_name
-        FROM plays
-        WHERE played_at >= ? AND played_at < ?
-        ORDER BY played_at ASC;
-    """, (start_str, end_str))
-
-    rows = cur.fetchall()
-    conn.close()
+    rows = get_plays_between(start.strftime(ISO_UTC_FORMAT), end.strftime(ISO_UTC_FORMAT))
 
     local_tz = get_localzone()
-
 
     plays = [
         {
@@ -108,12 +83,12 @@ def send_email(plays, start, end, analytics):
 
     msg = MIMEText(summary_text)
     msg['Subject'] = f"Spotify Daily Summary {start.date()}"
-    msg['From'] = EMAIL_FROM
-    msg['To'] = EMAIL_TO
+    msg['From'] = config.EMAIL_FROM
+    msg['To'] = config.EMAIL_TO
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+    with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT) as server:
         server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
+        server.login(config.SMTP_USER, config.SMTP_PASS)
         server.send_message(msg)
 
 def run():
