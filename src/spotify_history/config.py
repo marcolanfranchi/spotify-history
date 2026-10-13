@@ -18,6 +18,7 @@ MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 DB_NAME = os.getenv("SQLITE_DB_NAME", "plays.db")
 DB_PATH = DATA_DIR / DB_NAME
 CSV_PATH = DATA_DIR / "plays.csv"
+API_DIR = DATA_DIR / "api" / "v1"  # JSON tables for the website
 LOG_PATH = DATA_DIR / "spotify.log"
 TOKEN_PATH = DATA_DIR / ".spotify_token"
 

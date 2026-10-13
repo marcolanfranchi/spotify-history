@@ -4,7 +4,7 @@ Archive your Spotify listening history into a lightweight SQLite3 database and r
 
 - Every **10 minutes**, a job ([here](src/spotify_history/jobs/fetch.py)) runs via cron to fetch your recent Spotify listening history and insert new plays into the SQLite3 database.
 - Every day at **12:02 AM**, another job ([here](src/spotify_history/jobs/daily_email.py)) runs via cron to query the database, compute daily overview metrics, and send you an email summary of your listening activity.
-- Every **30 minutes**, an optional job ([here](src/spotify_history/jobs/export.py)) exports `plays.csv` and uploads it to S3 if configured.
+- Every **30 minutes**, an optional job ([here](src/spotify_history/jobs/export.py)) exports `plays.csv` plus JSON tables and uploads them to S3 if configured.
 
 ## Project Layout
 
@@ -118,6 +118,63 @@ mv .spotify_token data/.spotify_token   # re-authorizing also works if you can't
 ```
 `migrate` recognizes the existing database and keeps all of its data.
 
+## How Data Flows
+
+```mermaid
+flowchart TD
+    subgraph cron["cron jobs (Raspberry Pi)"]
+        F["fetch<br/>every 10 min"]
+        E["enrich<br/>manual, or hourly if enabled"]
+        X["export --upload<br/>:01 and :31"]
+    end
+
+    subgraph spotify["Spotify Web API"]
+        ME["GET /me"]
+        RP["GET /me/player/recently-played<br/>limit=50, after=newest stored play"]
+        GA["GET /artists/{id}"]
+        GB["GET /albums/{id}"]
+    end
+
+    subgraph db["SQLite: data/plays.db"]
+        users[("users")]
+        plays[("plays<br/>one row per listen")]
+        tracks[("tracks")]
+        track_artists[("track_artists<br/>all artists, in order")]
+        artists[("artists")]
+        genres[("artist_genres")]
+        albums[("albums")]
+    end
+
+    F --> ME --> users
+    F --> RP
+    RP -->|"played_at, context"| plays
+    RP -->|"name, duration, explicit, isrc"| tracks
+    RP --> track_artists
+    RP -->|"id, name"| artists
+    RP -->|"type, release date, images"| albums
+
+    E --> GA
+    E --> GB
+    GA -->|"images"| artists
+    GA -->|"genres"| genres
+    GB -->|"fills in older albums"| albums
+
+    db --> X
+    X --> csv["plays.csv (unchanged)"]
+    X --> json["v1/*.json tables"]
+    csv --> S3[("S3 bucket")]
+    json --> S3
+    S3 --> site["personal site"]
+```
+
+| Step | Reads from Spotify | Writes to |
+|---|---|---|
+| `fetch` (every 10 min) | your profile; up to 50 plays since the newest stored one | `users`, `plays`, `tracks`, `track_artists`, `artists` (name), `albums` (full details) |
+| `enrich` (optional) | one artist or album per API call, most-played first | `artists` (image), `artist_genres`, `albums` |
+| `export --upload` | nothing (reads the DB only) | `plays.csv` and `v1/*.json` in S3 |
+
+Re-seen plays are ignored (`UNIQUE (user_id, track_id, played_at)`), and a re-seen artist never loses its genres.
+
 ## Artist Genres & Album Details (Enrichment)
 
 Besides raw plays, the database has normalized `artists`, `albums`, `tracks`, `track_artists` (all artists on a track) and `artist_genres` tables.
@@ -157,6 +214,20 @@ GROUP BY year ORDER BY year;
 ```
 
 `artists.popularity` and `followers_total` are stored when Spotify returns them, but Spotify has deprecated both fields, so treat them as best-effort (they can become NULL).
+
+## Website Data (JSON Tables)
+
+Every `export` also writes the tables as JSON to `data/api/v1/`, and `export --upload` publishes them next to `plays.csv` under `<S3_PREFIX>/v1/`. `plays.csv` itself is unchanged.
+
+| File | Contents |
+|---|---|
+| `plays.json` | `played_at, track_id, artist_id, album_id, context_type`, newest first |
+| `tracks.json` | `name, album_id, artist_ids[], duration_ms, explicit, isrc, ...` |
+| `artists.json` | `name, genres[], genres_known, image_url, popularity, followers_total` |
+| `albums.json` | `name, album_type, release_date, total_tracks, image_url` |
+| `manifest.json` | schema version, generation time, row counts, enrichment progress |
+
+Plays carry ids only; consumers join names from the other tables with a `Map` lookup. Files are uploaded gzipped (`Content-Encoding: gzip`, so browsers decode them transparently), data files first and the manifest last. `genres_known: false` means an artist hasn't been enriched yet, as opposed to having no genres.
 
 ## Monitoring & Logs
 Logs from the cron-scheduled jobs are written to `data/spotify.log`:

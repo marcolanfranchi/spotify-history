@@ -28,3 +28,13 @@ def no_real_s3(monkeypatch):
         raise AssertionError(f"test attempted to run a real subprocess: {args!r}")
 
     monkeypatch.setattr(subprocess, "run", _blocked)
+
+
+@pytest.fixture(autouse=True)
+def isolated_data_dir(tmp_path, monkeypatch):
+    """Exports, logs and tokens written by a test must never land in the real data/."""
+    data = tmp_path / "data"
+    monkeypatch.setattr(config, "DATA_DIR", data)
+    monkeypatch.setattr(config, "CSV_PATH", data / "plays.csv")
+    monkeypatch.setattr(config, "API_DIR", data / "api" / "v1")
+    monkeypatch.setattr(config, "TOKEN_PATH", data / ".spotify_token")
