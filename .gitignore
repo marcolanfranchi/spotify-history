@@ -9,6 +9,12 @@ spotify.log
 .spotify_token
 
 venv/
+.venv/
 
 __pycache__/
 
+CLAUDE.md
+
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
